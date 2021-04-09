@@ -19,7 +19,7 @@ public class InputHandler : MonoBehaviour
         InitializeCommands();
     }
 
-    private void Update() => HandleInputs();
+    private void Update() => RunUpdate();
 
     private void InitializeComponents()
     {
@@ -38,28 +38,42 @@ public class InputHandler : MonoBehaviour
         _moveRight = new DoMoveRight();
     }
 
-    private void HandleInputs()
+    private void RunUpdate()
     {
-        if (Input.touchCount <= 0) return;
-        
+        if (Input.touchCount > 0) HandleTouch();
+    }
+
+    private void HandleTouch()
+    {
         _touch = Input.GetTouch(0);
 
-        if (_touch.phase == TouchPhase.Began)
+        UpdateTouchPosition();
+
+        if (_touch.phase == TouchPhase.Ended) ExecuteAction();
+    }
+
+    private void ExecuteAction()
+    {
+        direction = GetTouchDirection();
+
+        if (ShouldExecuteCommand() == false) return;
+
+        // Para debug
+        GameManager.Instance.WriteOnScreen(direction);
+
+        ExecuteCommand();
+    }
+
+    private void UpdateTouchPosition()
+    {
+        switch (_touch)
         {
-            _touchInitialPosition = _touch.position;
-        }
-        else if (_touch.phase == TouchPhase.Ended)
-        {
-            _touchFinalPosition = _touch.position;
-
-            direction = GetTouchDirection();
-
-            if (ShouldExecuteCommand() == false) return;
-
-            // Para debug
-            GameManager.Instance.WriteOnScreen(direction);
-
-            ExecuteCommand();
+            case {phase: TouchPhase.Began}:
+                _touchInitialPosition = _touch.position;
+                break;
+            case {phase: TouchPhase.Ended}:
+                _touchFinalPosition = _touch.position;
+                break;
         }
     }
 
@@ -78,8 +92,8 @@ public class InputHandler : MonoBehaviour
     
     private (float x, float y) GetTouchPositionDifference()
     {
-        float x = _touchFinalPosition.x - _touchInitialPosition.x;
-        float y = _touchFinalPosition.y - _touchInitialPosition.y;
+        var x = _touchFinalPosition.x - _touchInitialPosition.x;
+        var y = _touchFinalPosition.y - _touchInitialPosition.y;
         return (x, y);
     }
 
@@ -105,17 +119,16 @@ public class InputHandler : MonoBehaviour
         }
     }
 
-    private bool ShouldExecuteCommand()
-    {
-        float animationDuration = 0;
+    private bool ShouldExecuteCommand() =>
+        CommandCanBePerformedAnytime() || AnimationPlayedLongEnough(GetAnimationDuration());
 
-        if (GetCurrentAnimationInfo().IsName("run") == false)
-            animationDuration = GetCurrentAnimationInfo().length;
-        
-        return AnimationPlayedLongEnough(animationDuration) || CommandCanBePerformedAnytime();
-    }
+    private float GetAnimationDuration() => 
+        !IsAnimatorRunning() ? GetCurrentAnimationInfo().length: 0;
     
-    private AnimatorStateInfo GetCurrentAnimationInfo(int index = 0) => _animator.GetCurrentAnimatorStateInfo(0);
+
+    private bool IsAnimatorRunning() => GetCurrentAnimationInfo().IsName("run");
+
+    private AnimatorStateInfo GetCurrentAnimationInfo(int index = 0) => _animator.GetCurrentAnimatorStateInfo(index);
 
     private bool AnimationPlayedLongEnough(float animationDuration) => animationDuration < animationCancelThreshold;
     
