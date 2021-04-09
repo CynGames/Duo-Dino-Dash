@@ -30,6 +30,9 @@
 *.log
 Logs
 
+*.log
+Logs
+
 # Visual Studio cache directory
 .vs/
 

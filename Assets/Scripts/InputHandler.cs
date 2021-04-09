@@ -123,10 +123,9 @@ public class InputHandler : MonoBehaviour
         CommandCanBePerformedAnytime() || AnimationPlayedLongEnough(GetAnimationDuration());
 
     private float GetAnimationDuration() => 
-        !IsAnimatorRunning() ? GetCurrentAnimationInfo().length: 0;
+        !IsPlayingRunAnimation() ? GetCurrentAnimationInfo().length: 0;
     
-
-    private bool IsAnimatorRunning() => GetCurrentAnimationInfo().IsName("run");
+    private bool IsPlayingRunAnimation() => GetCurrentAnimationInfo().IsName("run");
 
     private AnimatorStateInfo GetCurrentAnimationInfo(int index = 0) => _animator.GetCurrentAnimatorStateInfo(index);
 
