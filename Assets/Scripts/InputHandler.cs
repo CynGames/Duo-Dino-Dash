@@ -18,9 +18,7 @@ public class InputHandler : MonoBehaviour
         InitializeComponents();
         InitializeCommands();
     }
-
-    private void Update() => RunUpdate();
-
+    
     private void InitializeComponents()
     {
         _animator = GetComponent<Animator>();
@@ -37,6 +35,8 @@ public class InputHandler : MonoBehaviour
         _moveLeft = new DoMoveLeft();
         _moveRight = new DoMoveRight();
     }
+    
+    private void Update() => RunUpdate();
 
     private void RunUpdate()
     {
@@ -51,19 +51,7 @@ public class InputHandler : MonoBehaviour
 
         if (_touch.phase == TouchPhase.Ended) ExecuteAction();
     }
-
-    private void ExecuteAction()
-    {
-        direction = GetTouchDirection();
-
-        if (ShouldExecuteCommand() == false) return;
-
-        // Para debug
-        GameManager.Instance.WriteOnScreen(direction);
-
-        ExecuteCommand();
-    }
-
+    
     private void UpdateTouchPosition()
     {
         switch (_touch)
@@ -75,6 +63,18 @@ public class InputHandler : MonoBehaviour
                 _touchFinalPosition = _touch.position;
                 break;
         }
+    }
+
+    private void ExecuteAction()
+    {
+        direction = GetTouchDirection();
+
+        if (ShouldExecuteCommand() == false) return;
+
+        // Para debug
+        GameManager.Instance.WriteOnScreen(direction);
+
+        ExecuteCommand();
     }
 
     private TouchDirection GetTouchDirection()
@@ -96,7 +96,20 @@ public class InputHandler : MonoBehaviour
         var y = _touchFinalPosition.y - _touchInitialPosition.y;
         return (x, y);
     }
+    
+    private bool ShouldExecuteCommand() =>
+        CommandCanBePerformedAnytime() || AnimationPlayedLongEnough(GetAnimationDuration());
 
+    private bool CommandCanBePerformedAnytime() => direction == TouchDirection.LEFT || direction == TouchDirection.RIGHT;
+    
+    private float GetAnimationDuration() => !IsPlayingRunAnimation() ? GetCurrentAnimationInfo().length: 0;
+
+    private bool IsPlayingRunAnimation() => GetCurrentAnimationInfo().IsName("run");
+
+    private AnimatorStateInfo GetCurrentAnimationInfo(int index = 0) => _animator.GetCurrentAnimatorStateInfo(index);
+
+    private bool AnimationPlayedLongEnough(float animationDuration) => animationDuration < animationCancelThreshold;
+    
     private void ExecuteCommand()
     {
         switch (direction)
@@ -118,18 +131,4 @@ public class InputHandler : MonoBehaviour
                 break;
         }
     }
-
-    private bool ShouldExecuteCommand() =>
-        CommandCanBePerformedAnytime() || AnimationPlayedLongEnough(GetAnimationDuration());
-
-    private float GetAnimationDuration() => 
-        !IsPlayingRunAnimation() ? GetCurrentAnimationInfo().length: 0;
-    
-    private bool IsPlayingRunAnimation() => GetCurrentAnimationInfo().IsName("run");
-
-    private AnimatorStateInfo GetCurrentAnimationInfo(int index = 0) => _animator.GetCurrentAnimatorStateInfo(index);
-
-    private bool AnimationPlayedLongEnough(float animationDuration) => animationDuration < animationCancelThreshold;
-    
-    private bool CommandCanBePerformedAnytime() => direction == TouchDirection.LEFT || direction == TouchDirection.RIGHT;
 }

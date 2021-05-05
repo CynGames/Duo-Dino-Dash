@@ -9,7 +9,7 @@ public class DoMoveLeft : Command
 {
     public override void Execute(Animator animator, Rigidbody rb)
     {
-        
+        rb.MovePosition(rb.position + Vector3.left * 2);
     }
 }
 
@@ -17,7 +17,7 @@ public class DoMoveRight : Command
 {
     public override void Execute(Animator animator, Rigidbody rb)
     {
-        
+        rb.MovePosition(rb.position + Vector3.right * 2);
     }
 }
 
